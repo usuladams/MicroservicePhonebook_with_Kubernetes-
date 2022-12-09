@@ -1,0 +1,48 @@
+apiVersion: apps/v1 
+kind: Deployment 
+metadata:
+  name: result-server-deploy
+spec:
+  replicas: 3 
+  selector:  
+    matchLabels:
+      app: result-server-pod
+  minReadySeconds: 10 
+  strategy:
+    type: RollingUpdate 
+    rollingUpdate:
+      maxUnavailable: 1 
+      maxSurge: 1 
+  template: 
+    metadata:
+      name: result-server-pod
+      labels:
+        app: result-server-pod
+    spec:
+      containers:
+      - name: result-server
+        image: paulkellerman/resultserver-app:1.0 
+        ports:
+          - containerPort: 80
+        env:
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: myapp-secret
+              key: mysql_password
+              optional: false 
+        - name: MYSQL_DATABASE
+          valueFrom:
+            configMapKeyRef:
+              name: myapp-serverconfigmap
+              key: mysql_database
+        - name: MYSQL_USER
+          valueFrom:
+            configMapKeyRef:
+              name: myapp-serverconfigmap
+              key: mysql_user
+        - name: MYSQL_DATABASE_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: myapp-serverconfigmap
+              key: mysql_database_host

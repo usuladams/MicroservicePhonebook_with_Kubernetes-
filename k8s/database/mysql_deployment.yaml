@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysqlapp-deploy
+  labels:
+    app: mysqlapp-deploy
+
+spec:
+  selector:
+    matchLabels:
+      app: mysql-pod
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: mysql-pod
+    spec:
+      containers:
+      - image: mysql:5.7
+        name: mysql
+        ports:
+        - containerPort: 3306
+          name: mysql
+        env:
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: myapp-secret
+              key: mysql_password
+              optional: false 
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: myapp-secret
+              key: mysql_root_password
+              optional: false 
+        - name: MYSQL_DATABASE
+          valueFrom:
+            configMapKeyRef:
+              name: myapp-dbconfigmap
+              key: mysql_database
+        - name: MYSQL_USER
+          valueFrom:
+            configMapKeyRef:
+              name: myapp-dbconfigmap
+              key: mysql_user
+        volumeMounts:
+        - mountPath: "/var/lib/mysql"
+          name: paul-pv-storage
+      volumes:
+        - name: paul-pv-storage
+          persistentVolumeClaim:
+            claimName: mysql-pv-claim 
+       

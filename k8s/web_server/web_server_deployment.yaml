@@ -1,0 +1,48 @@
+apiVersion: apps/v1 
+kind: Deployment 
+metadata:
+  name: web-server-deploy
+spec:
+  replicas: 3 
+  selector:  
+    matchLabels:
+      app: web-server-pod
+  minReadySeconds: 10
+  strategy:
+    type: RollingUpdate 
+    rollingUpdate:
+      maxUnavailable: 1 
+      maxSurge: 1 
+  template: 
+    metadata:
+      name: web-server-pod
+      labels:
+        app: web-server-pod
+    spec:
+      containers:
+      - name: web-server
+        image: paulkellerman/webserver-app:latest 
+        ports:
+          - containerPort: 80
+        env:
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: myapp-secret
+              key: mysql_password
+              optional: false 
+        - name: MYSQL_DATABASE
+          valueFrom:
+            configMapKeyRef:
+              name: myapp-serverconfigmap
+              key: mysql_database
+        - name: MYSQL_USER
+          valueFrom:
+            configMapKeyRef:
+              name: myapp-serverconfigmap
+              key: mysql_user
+        - name: MYSQL_DATABASE_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: myapp-serverconfigmap
+              key: mysql_database_host
